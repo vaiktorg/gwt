@@ -1,4 +1,4 @@
-module github.com/vaiktorg/gwt
+module github.com/Vaiktorg/gwt
 
 go 1.17
 
