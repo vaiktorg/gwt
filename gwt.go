@@ -62,7 +62,6 @@ func NewDefaultGWT(issuer string) *GWT {
 			Issuer:    issuer,
 			Timestamp: time.Now(),
 		},
-		Payload: "",
 		spice: Spice{
 			Salt:   _Spice.Salt,
 			Pepper: _Spice.Pepper,
@@ -78,8 +77,7 @@ func NewGWTWithSpice(issuer string, spice Spice) *GWT {
 			Issuer:    issuer,
 			Timestamp: time.Now(),
 		},
-		Payload: "",
-		spice:   spice,
+		spice: spice,
 	}
 	return t
 }

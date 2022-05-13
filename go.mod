@@ -1,5 +1,5 @@
-module github.com/Vaiktorg/gwt
+module github.com/vaiktorg/gwt
 
-go 1.17
+go 1.18
 
 require github.com/google/uuid v1.3.0
