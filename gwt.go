@@ -12,14 +12,6 @@ import (
 	"time"
 )
 
-var _Spice Spice
-
-// "import _ github.com/vaiktorg/gwt" to initialize the default global _Spice encryption flavoring
-func init() {
-	_Spice.Salt = []byte(uuid.New().String())
-	_Spice.Salt = []byte(uuid.New().String())
-}
-
 type Spice struct {
 	Salt   []byte
 	Pepper []byte
@@ -37,6 +29,10 @@ type (
 		Payload   interface{} // Use type assertion to get your expected payload package.
 		Signature []byte      // Token Signature
 		spice     Spice
+	}
+	Token struct {
+		Token     string
+		Signature string
 	}
 )
 
@@ -62,10 +58,6 @@ func NewDefaultGWT(issuer string) *GWT {
 			Issuer:    issuer,
 			Timestamp: time.Now(),
 		},
-		spice: Spice{
-			Salt:   _Spice.Salt,
-			Pepper: _Spice.Pepper,
-		},
 	}
 	return t
 }
@@ -82,16 +74,16 @@ func NewGWTWithSpice(issuer string, spice Spice) *GWT {
 	return t
 }
 
-func (g *GWT) Encode(payload interface{}) (token, signature string, err error) {
+func (g *GWT) Encode(payload interface{}) (token *Token, err error) {
 	if payload == nil {
-		return "", "", errors.New(ErrorNilArgument)
+		return nil, errors.New(ErrorNilArgument)
 	}
 
 	// Payload JSON string
 	payloadBuffer := new(bytes.Buffer)
 	err = json.NewEncoder(payloadBuffer).Encode(payload)
 	if err != nil {
-		return "", "", errors.New(ErrorFailedToEncodePL)
+		return nil, errors.New(ErrorFailedToEncodePL)
 	}
 
 	// Header JSON string
@@ -103,7 +95,7 @@ func (g *GWT) Encode(payload interface{}) (token, signature string, err error) {
 	})
 
 	if err != nil {
-		return "", "", errors.New(ErrorFailedToEncodeHdr)
+		return nil, errors.New(ErrorFailedToEncodeHdr)
 	}
 
 	// ----------------------------------------------------------------------------------------------
@@ -111,7 +103,7 @@ func (g *GWT) Encode(payload interface{}) (token, signature string, err error) {
 	hash := hmac.New(sha256.New, g.spice.Salt)
 	_, err = hash.Write(append(headerBuffer.Bytes(), payloadBuffer.Bytes()...))
 	if err != nil {
-		return "", "", errors.New(ErrorFailedToEncodeSig)
+		return nil, errors.New(ErrorFailedToEncodeSig)
 	}
 
 	hashSignature := hash.Sum(g.spice.Pepper)
@@ -131,12 +123,14 @@ func (g *GWT) Encode(payload interface{}) (token, signature string, err error) {
 	//-----------
 
 	// Results in token "b64Header.b64Payload.b64Signature"
-	return strings.Join([]string{
-			string(b64header),
-			string(b64payload),
-			string(b64signature),
-		}, "."),
-		string(b64signature),
+	return &Token{
+			Token: strings.Join([]string{
+				string(b64header),
+				string(b64payload),
+				string(b64signature),
+			}, "."),
+			Signature: string(b64signature),
+		},
 		nil
 }
 
@@ -190,7 +184,7 @@ func (g *GWT) Decode(tkn string) error {
 	hash := hmac.New(sha256.New, g.spice.Salt)
 	_, err = hash.Write(append(headerBuff, payloadBuff...))
 	if err != nil {
-		return errors.New(ErrorFailedToDecode)
+		return errors.New(ErrorFailedToEncodeSig)
 	}
 
 	hashSignature := hash.Sum(g.spice.Pepper)

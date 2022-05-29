@@ -20,14 +20,14 @@ var GwtWith = NewGWTWithSpice(GlobalIssuer, Spice{
 
 func TestGWT(t *testing.T) {
 	t.Run("Encode", func(t *testing.T) {
-		token, signature, err := Gwt.Encode("this is a string payload")
+		token, err := Gwt.Encode("this is a string payload")
 		if err != nil {
 			t.Error(err)
 			t.Failed()
 		}
 
-		GlobalToken = token
-		GlobalSignature = signature
+		GlobalToken = token.Token
+		GlobalSignature = token.Sig
 
 		fmt.Printf("%#+v\n", Gwt)
 		fmt.Printf("%#+v\n", GlobalToken)
@@ -47,14 +47,14 @@ func TestGWT(t *testing.T) {
 	})
 
 	t.Run("EncodeWith", func(t *testing.T) {
-		token, signature, err := GwtWith.Encode("this is a string payload")
+		token, err := GwtWith.Encode("this is a string payload")
 		if err != nil {
 			t.Error(err)
 			t.Failed()
 		}
 
-		GlobalToken = token
-		GlobalSignature = signature
+		GlobalToken = token.Token
+		GlobalSignature = token.Sig
 
 		fmt.Printf("%#+v\n", Gwt)
 		fmt.Printf("%#+v\n", GlobalToken)
